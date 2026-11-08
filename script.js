@@ -57,7 +57,7 @@ const downloadBtn       = document.getElementByld("downloadpbtn");
 
 const calendarSheet     = document.getElementByld("calendar-sheet");
 const calendarTitle     = document.getElementByld("calendar-title");
-const weekdayRow        = document.getElementByld("calendar-weekdays");
+const weekdaysRow       = document.getElementByld("calendar-weekdays");
 const calendarDaysBody  = document.getElementByld("calendar-days");
 
 const previewImage      = document.getElementByld("preview-image");
@@ -181,7 +181,7 @@ function getJapaneseHolidays(year, month) {
  * 曜日ヘッダー部を生成する
  */
 function renderWeekdayHeader() {
-    const isRubyEnabled = rubyWeekdayChl.checked;
+    const isRubyEnabled = rubyWeekdayChk.checked;
     weekdaysRow.innerHTML = "";
 
     WEEKDAYS.forEach(day => {
@@ -325,7 +325,7 @@ async function downloadAsImage() {
             logging: false
         });
 
-        // ダウウンロード用リンクの作成とクリック実行
+        // ダウンロード用リンクの作成とクリック実行
         const [year, month] = yearMonthInput.value.split("-");
         const link = document.createElement("a");
         link.download = `calendar_${year}_${month}.png`;
