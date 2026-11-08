@@ -131,7 +131,47 @@ function getJapaneseHolidays(year, month) {
             Math.floor((year - 1980) / 4));
             holidays[autumsEquinox] = "秋分の日";
             
-            // 
+            // 国民の休日判定（毛尾老の日と秋分の日の間に挟まれた1日）
+            if (autumnEquinox - respectDay === 2) {
+                holidays[respectDay + 1] = "国民の休日";
+            }
+            break;
         }
+
+        case 10:
+            holidays[getNthMonday(2)] = "スポーツの日";
+            break;
+
+        case 11:
+            holidays[3] = "文化の日";
+            holidays[23] = "勤労感謝の日";
+            break;
+
+        case 12:
+            if (year < 2019) {
+                holidays[23] = "天皇誕生日";
+            }
+            break;
     }
+
+    // --- 振替休日の判定 ---
+    // 祝日が日曜日と重なった場合、その日以降で最も近い「祝日でない日」を振替休日にする
+    const lastDayOfMonth = new Date(year, month, 0).getDate();
+    const sortedHolidayDates = Object.keys(holidays).map(Number).sort((a, b) => a - b);
+
+    sortedHolidayDates.forEach(day => {
+        const holidayDate = new Date(year, month, -1, day);
+        if (holidayDate.getDay() === 0) {  // 日曜日なら
+            let substituteDay = day + 1;
+            while (substituteDay <= lastDayOfMonth) {
+                if (!holidays[substituteDay]) {
+                    holidays[substituteDay] = "振替休日";
+                    break;
+                }
+                substituteDay++;
+            }
+        }
+    });
+
+    return holidays;
 }
