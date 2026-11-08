@@ -1,0 +1,268 @@
+/* ==========================================================================
+   やさしいカレンダー スタイルシート (style.css)
+   ========================================================================== */
+
+/* --- 基本リセット & 全体設定 --- */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {  
+    /* サイト全体の下地色 */
+    background-color: #fffff0;
+    font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', 'Meiryo', sans-serif;
+    color: #3b2e2a;
+    line-height: 1.5;
+    padding-bottom: 40px;
+}
+
+/* 印刷時に非表示にする要素の共通クラス */
+.no-print {
+    display: block;
+}
+
+/* ==========================================================================
+   1. 上部ヘッダー：ピンクのスケッチブック風（白リング・茶枠・クレヨン風）
+   ========================================================================== */
+   .sketchbook-header {
+    max-width: 960px;
+    margin: 20px auto 0;
+    padding: 0 20px;
+    position: relative;
+   }
+
+   /* スケッチブックの白リングの並び */
+    .ring-row {
+        display: flex;
+        justify-content: space-around;
+        padding: 0 40px;
+        position: relative;
+        top: 14px;
+        z-index: 2;
+}
+
+.ring {
+    width: 22px;
+    height:38px;
+    background: #ffffff;
+    border: 3px solid #6b4423; /* 茶色のリング外枠 */
+    border-radius: 12px;
+    box-shadow: inset 0 -3px o rgba(0, 0, 0, 0.1), 0 3px 5px rgba(0, 0, 0, 0.15);
+    position: relative;
+}
+
+/* リングの穴（黒い影）を表現 */
+ring::after {
+  content: "";
+  position: absolute;
+  top: 16px;
+  left: 2px;
+  right: 2px;
+  height: 8px;
+  background: #4a2c11;
+  border-radius: 50%;
+  opacity: 0.25;  /*不透明度*/
+}
+
+/* スケッチブックの本体（ピンクの表紙） */
+.sketchbook-body {
+    background-color: #fca5b8; /* やさしいピンク */
+    border: 5px solid #6b4423; /* クレヨン風の茶色枠 */
+    /* クレヨンで書いたような手書き風の不規則なふち */
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 225px;
+    padding: 30px 20pz 20px;
+    text-align: center;
+    box-shadow: 3px 5px 0 #54341b, 0 8px 20px rgba(107, 68, 35, 0.15);
+}
+
+/* クレヨン風タイトル */
+.crayon-title {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #4a2c11;
+    letter-spacing: 0.1em;
+    text-shadow: 1px 1px 0 #fff;
+    display: inline-block;
+    padding: 2px 16px;
+    border-bottom: 3px dashed #6b4423;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+color: #613b1c;
+margin-top: 6px;
+font-weight: 500;
+}
+
+/* ==========================================================================
+   2.設定パネル：薄い灰色の横線ノート風
+   ========================================================================== */
+.notebook-panel {
+    max-width: 960px;
+    margin: 24px auto;
+    padding: 0 20px;
+}
+
+.notebook-inner {
+    background-color: #ffffff;
+    /* ノートの横罫線（薄い灰色：32pxピッチ） */
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent,
+        transparent 31px,
+        #e8eaed 31px,
+        #e8eaed 32px
+    );
+    border: 2px solid #d3d3d3;
+    /* ノートの左側の赤線アクセント（学習ノート風） */
+    border-left: 8px solid #ff7b7b;
+    border-radius: 12px;
+    padding:24px 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.notebook-heading {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #5c4033;
+    margin-bottom: 20px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid #f0b6b6;
+}
+
+.setting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px 24px;
+    align-items: center;
+}
+
+.setting-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.setting-item label,
+.setting-item .item-label {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: #4a3832;
+}
+
+.setting-item input[type="month"],
+.setting-item select,
+.setting-item input[type="file"] {
+    font-family: inherit;
+    font-size: 0.95rem;
+    padding: 8px 12px;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    background:#ffffff;
+    color: #333;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.setting-item input[tyoe="month"]:focus,
+.setting-item select:focus {
+    border-color:#f472b6;
+}
+
+/* チェックボックス項目 */
+.checkbox-item .checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.checkbox-item label {
+    font-weight: 500;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #ec4899;
+    cursor: pointer;
+}
+
+/* 操作ボタン（印刷 & 保存） */
+.action-buttons {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap:16px;
+    justify-content: center;
+}
+
+.btn {
+    font-family: inherit;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 12px 28px;
+    border: 3px solid #6b4423;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 2px 4px 0 #6b4423;
+}
+
+.btn:active {
+    transform: translate(2px, 3px);
+    box-shadow: 0 1px 0 #6b4423;
+}
+
+.btn-print {
+    background-color: #fed7aa;  /* やさしいオレンジ */
+    color: #14532d;
+}
+
+.btn-download {
+  background-color: #bbf7d0; /* やさしいグリーン */
+  color: #14532d;
+}
+
+/* ==========================================================================
+   3. カレンダーシート（プレビュー ＆ 印刷用紙）
+   ========================================================================== */
+.sheet-viewport {
+    max-width: 1100px;
+    margin: 20px auto 40px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    overflow-x:auto;
+}
+
+/* 共通の用紙スタイル（画面上は比率を維持した美しいシート） */
+.calendar-sheet {
+    background: #ffffff;
+    color:#333333;
+    border: 2px solid #b0bec5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 共通の用紙スタイル（画面上は比率を維持した美しいシート） */
+.calendar-sheet {
+    background: #ffffff;
+    color: #333333;
+    border: 2px solid #b0bec5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
