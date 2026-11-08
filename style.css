@@ -230,3 +230,266 @@ font-weight: 500;
   background-color: #bbf7d0; /* やさしいグリーン */
   color: #14532d;
 }
+
+/* ==========================================================================
+   3. カレンダーシート（プレビュー ＆ 印刷用紙）
+   ========================================================================== */
+.sheet-viewport {
+    max-width: 1100px;
+    margin: 20px auto 40px;
+    padding: 0 20px;
+    display: flex;
+    justify-content: center;
+    overflow-x:auto;
+}
+
+/* 共通の用紙スタイル（画面上は比率を維持した美しいシート） */
+.calendar-sheet {
+    background: #ffffff;
+    color:#333333;
+    border: 2px solid #b0bec5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+/* 共通の用紙スタイル（画面上は比率を維持した美しいシート） */
+.calendar-sheet {
+    background: #ffffff;
+    color: #333333;
+    border: 2px solid #b0bec5;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 18px 24px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.sheet-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #333333;
+    letter-spacing: 0.05em;
+}
+
+/* カレンダーテーブル */
+.calendar-table-wrapper {
+    flex: 1;
+    display: flex;
+}
+
+.calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+/* 曜日ヘッダー */
+.calendar-table th {
+    border: 1.5px solid #666666;
+    background-color: #f8fafc;
+    padding: 6px 4px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+/* 曜日のルビ（ふりがな） */
+.calendar-table th ruby rt {
+    font-size: 0.65rem;
+    font-weight: normal;
+}
+
+/* 曜日・日付のカラーリング規則 */
+/* 日曜日（赤） */
+.calendar-table th.col-sun,
+.calendar-table td.col-sun .date-num {
+    color: #d90429;
+}
+
+/* 土曜日（青） */
+.calendar-table th.col-sat,
+.calendar-table td.col-sat .date-num {
+    color: #0077b6;
+}
+
+/* 祝日（日曜と同じく赤） */
+.calendar-table td.is-holiday .date-num,
+.calendar-table td .holiday-name {
+    color: #d90429;
+}
+
+/* 日付セル（td） */
+.calendar-table td {
+    border: 1.5px solid #888888;
+    vertical-align: top;
+    padding: 4px 6px;
+    height: 72px;  /* 5~6週分が綺麗に入る高さ */
+    position: relative;
+    background: #ffffff;
+}
+
+/* 当月外の日付セル */
+.calendar-table td.othermonth {
+    background-color:#f9f9f9;
+    opacity: 0.35;
+}
+
+/* セル内の上部（日付数字 & 祝日名） */
+.ceel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
+}
+
+.date-num {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.1;
+}
+
+/* 特別な読み方のふりがな（ついたち、はつか等） */
+.date-num ruby rt {
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+/* 祝日名の表記 */
+.holiday-name {
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+    text-align: right;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 65%;
+}
+
+/* 日付下の「シール貼り & やることメモ」スペース */
+.sticker-memo-space {
+    margin-top: 4px;
+    height: 38px;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 6px;
+    background-color: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+/* シール枠の内側に薄いガイド（シールが貼りやすいマル印） */
+.sticker-memo-space::before {
+    content: "";
+    width: 22px;
+    height: 22px;
+    border: 1px botted #e2e8f0;
+    border-radius: 50%;
+}
+
+/* ==========================================================================
+   4. カレンダー下部の自由画像スペース
+   ========================================================================== */
+.bottom-space {
+    margin-top: 10px;
+    height: 130px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background-color: #fafbfc;
+    position: relative;
+}
+
+.image-preview-wrapper {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder-text {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+#preview-image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ==========================================================================
+   5. 印刷用スタイル (@media print)
+   ========================================================================== */
+@media print {
+    /* 画面のヘッダーや操作パネルは完全に非表示 */
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        background-color:#ffffff !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .sheet-viewport {
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    .calendar-sheet {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 4mm 6mm !important;
+        margin: 0 auto !important;
+        width: 100% !important;
+        page-break-inside: avoid;
+    }
+
+    /* 印刷用の用紙サイズ指定 */
+    @page {
+        size: landscape;  /* 横向き */
+        margin: 6mm;
+    }
+
+    /* 用紙サイズ別の調整（印刷時） */
+    .calendar-sheet.a4 {
+        height: 198mm;  /* A4横（210mm - 余白12mm） */
+    }
+
+    .calendar-sheet.a5 {
+        height: 136mm;  /* A5横（210mm - 余白12mm） */
+    }
+
+    .calendar-sheet.b4 {
+        height: 245mm;  /* B4横（257mm - 余白12mm） */
+    }
+
+    .calendar-sheet.b5 {
+        height: 170mm;  /* B5横（182mm - 余白12mm） */
+    }
+
+    /* 印刷時は点線や枠線をくっきり出す */
+    .calendar-table th,
+    .calendar-table td {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}
