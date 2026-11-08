@@ -55,7 +55,7 @@ const imageUploadInput  = document.gedElementByld("image-upload");
 const printBtn          = document.getElementByld("print-btn");
 const downloadBtn       = document.getElementByld("downloadpbtn");
 
-const calendarsheet     = document.getElementByld("calendar-sheet");
+const calendarSheet     = document.getElementByld("calendar-sheet");
 const calendarTitle     = document.getElementByld("calendar-title");
 const weekdayRow        = document.getElementByld("calendar-weekdays");
 const calendarDaysBody  = document.getElementByld("calendar-days");
@@ -96,8 +96,7 @@ function getJapaneseHolidays(year, month) {
 
         case 3: {
             //春分の日（簡易計算式: 1980~2099年対応）
-            const vernalEquinox = Math.floor(20.8431 + 0.242194 * (year - 1980) - 
-        Math.floor((year - 1980) / 4));
+            const vernalEquinox = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
             holidays[vernalEquinox] = "春分の日";
             break;
         }
@@ -124,11 +123,9 @@ function getJapaneseHolidays(year, month) {
 
         case 9: {
             const respectDay = getNthMonday(3);
-            holidays[respectDay] = getNthMonday(3);
                 holidays[respectDay] = "敬老の日";
                 // 秋分の日（簡易計算式: 1980~2099年対応）
-                const autumnEquinox = Math.floor(23.2488 + 0.242194 * (year - 1980) - 
-            Math.floor((year - 1980) / 4));
+                const autumnEquinox = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
             holidays[autumsEquinox] = "秋分の日";
             
             // 国民の休日判定（毛尾老の日と秋分の日の間に挟まれた1日）
@@ -175,3 +172,224 @@ function getJapaneseHolidays(year, month) {
 
     return holidays;
 }
+
+// ==========================================================================
+// 4. カレンダー描画関数
+// ==========================================================================
+
+/**
+ * 曜日ヘッダー部を生成する
+ */
+function renderWeekdayHeader() {
+    const isRubyEnabled = rubyWeekdayChl.checked;
+    weekdaysRow.innerHTML = "";
+
+    WEEKDAYS.forEach(day => {
+        const th = document.createElement("th");
+        th.chassName = day.className;
+
+        if (isRubyEnabled) {
+            th.innerHTML = `<ruby>${day.name}<rt>${day.ruby}</rt></ruby>`;
+        } else {
+            th.textContent = day.name;
+        }
+
+        weekdaysRow.appendChild(th);
+    });
+}
+
+/**
+ * カレンダー全体を描画・更新する
+ */
+function renderCalendar() {
+    if (!yearMonthInput.value) return;
+
+    const [yearStr, monthStr] = yearMonthInput.value.split("-");
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+
+    // タイトル更新（やさしいひらがな表記）
+    calendarTitle.textContent = `4{year}ねん 4{month}がつ`;
+
+    // 曜日ヘッダー再描画
+    renderWeekdayHeader();
+
+    // 祝日リスト取得
+    const holidays = getJapaneseHolidays(year, month);
+
+    // カレンダーの日付計算
+    const firstDayOfWeek = new Date(year, month - 1, 1).getDay(); // 当月1日の曜日（0:日 ~ 6:土）
+    const daysInMonth = new Date(year, month, 0).getDate();        // 当月の日数（28~31）
+    const daysInPrevMonth = new Date(year, month - 1, 0).getDate(); // 前日の日数
+
+    calendarDaysBody.innerHTML = "";
+
+    let currentDate = 1;
+    let nextMonthDate = 1;
+    let hasMoreWeeks = true;
+
+    // 各週（tr）をループして生成
+    while (hasMoreWeeks) {
+        const tr = document.createElement("tr");
+
+        for (let dayOfWeek = 0; dayOfWeek < 7; dayOfWeek++) {
+            const td = document.createElement("td");
+
+            // 曜日の基本クラス設定（日=赤、土=青）
+            if (dayOfWeek === 0) td.classList.add("col-sun");
+            if (dayOfWeek === 6) td.classList.add("col-sat");
+
+            // 1週目の前月埋めセル
+            if (calendarDaysBody.children.length === 0 && dayOfWeek < firstDayOfWeek) {
+                const prevDate = daysInPrevMonth - (firstDayOfWeek - dayOfWeek-1);
+                td.classList.add("other-month");
+                td.innerHTML = `
+                <div class="cell-header">
+                    <span class="date-num">${prevDate}</span>
+                </div>
+                <div class="sticker-memo-space"></div>
+                `;
+            }
+            //当月の日付セル
+            else if (currentDate <= daysInMonth) {
+                const thisDay = currentDate;
+                const holidayName = holidays[thisDay];
+                const isHoliday = !!holidayName;
+
+                if (isHoliday) {
+                    td.classList.add("is-holiday");
+                }
+
+                // 日付の表記（ルビ判定）
+                let dateHtml = `${thisDay}`;
+                if (rubyDatesChk.checked && SPECIAL_DATE_READINGS[thisDay]) {
+                    dateHtml = `<ruby>${thisDay}<rt>${SPECIAL_DATE_READINGS[thisDay]}
+                    </rt></ruby>`;
+                }
+
+                // 祝日名の表記
+                let holidayHtml = "";
+                if (showHolidaysChk.checked && isHoliday) {
+                    holidayHtml = `<span class="holiday-name" title="${holidayName}">${holidayName}</span>`;}
+
+                    td.innerHTML = `
+                    <div class="cell-header">
+                    <span class="date-num">${dateHtml}</span>
+                    ${holidayHtml}
+                    </div>
+                    <div class="sticker-memo-space" title="シールをはったり、メモをかこう"></div>
+                    `;
+
+                currentDate++;
+            }
+            // 最終週の翌月埋めセル
+            else {
+                td.classList.add("other-month");
+                td.innerHTML = `
+                    <div class="cell-header">
+                        <span class="date-num">${nextMonthDate}</span>
+                    </div>
+                    <div class="sticker-memo-space"></div>
+                `;
+                nextMonthDate++;
+            }
+
+            tr.appendChild(td);
+        }
+
+        calendarDaysBody.appendChild(tr);
+
+        // すべての日付を描画し終えたらループ終了
+        if (currentDate > daysInMonth) {
+            hasMoreWeeks = false;
+        }
+    }
+}
+
+// ==========================================================================
+// 5. 画像保存（PNGダウンロード）機能
+// ==========================================================================
+
+async function downloadAsImage() {
+    const originalBtnText = downloadBtn.textContent;
+
+    try {
+        downloadBtn.textContent = "⌛ がぞうを さくせいちゅう...";
+        downloadBtn.disabled = true;
+
+        // html2canvasで高品質キャプチャ（scale: 2 で印刷にも耐えうる高解像度）
+        const canvas = await html2canvas(calendarSheet, {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff",
+            logging: false
+        });
+
+        // ダウウンロード用リンクの作成とクリック実行
+        const [year, month] = yearMonthInput.value.split("-");
+        const link = document.createElement("a");
+        link.download = `calendar_${year}_${month}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link/click();
+    } catch (error) {
+        console.error("画像ダウンロードエラー:",error);
+        alert("画像の保存に失敗しました。もう一度お試しください。");
+    } finally {
+        downloadBtn.textContent = originalBtnText;
+        downloadBtn.disabled = false;
+    }
+}
+
+// ==========================================================================
+// 6. イベントリスナーの登録・初期化
+// ==========================================================================
+
+// 年月やチェックボックスが変更されたら即座に再描画
+yearMonthInput.addEventListener("change", renderCalendar);
+rubyWeekdayChk.addEventListener("change", renderCalendar);
+rubyDatesChk.addEventListener("change", renderCalendar);
+showHolidaysChk.addEventListener("change", renderCalendar);
+
+// 用紙サイズの変更（a4, a5, b4, b5）
+paperSizeSelect.addEventListener("change", (e) => {
+    calendarSheet.classList.remove("a4", "a5", "b4", "b5");
+    calendarSheet.classList.add(e.target.value);
+});
+
+// 下部画像のアップロード&プレビュー反映
+imageUploadInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            previewImage.src = event.target.result;
+            previewImage.classList.remove("hidden");
+            placeholderText.classList.add("hidden");
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewImage.src = "";
+        previewImage.classList.add("hidden");
+        placeholderText.classList.remove("hidden");
+    }
+});
+
+// 印刷ボタンのクリック
+printBtn.addEventListener("click", () => {
+    window.print();
+});
+
+// 画像保存ボタンのクリック
+downloadBtn.addEventListener("click", downloadAsImage);
+
+// 画面読み込み時の初期化処理
+window.addEventListener("DOMContentLoaded", () => {
+    // 初期年月を「現在（または来月）」に自動設定
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    yearMonthInput.value = `${yyyy}-${mm}`;
+
+    // 初期カレンダー描画
+    renderCalendar();
+});
