@@ -51,8 +51,10 @@ const rubyWeekdayChk    = document.getElementByld("ruby-weekday");
 const rubyDatesChk      = document.getElementByld("ruby-special-dates");
 const showHolidaysChk   = document.getElementByld("show-holidays");
 const imageUploadInput  = document.gedElementByld("image-upload");
+const clearImageBtn     = document.getElementById("clear-image-btn");
 
 const printBtn          = document.getElementByld("print-btn");
+const previewBtn        = document.getElementById("preview-btn");
 const downloadBtn       = document.getElementByld("downloadpbtn");
 
 const calendarSheet     = document.getElementByld("calendar-sheet");
@@ -62,6 +64,13 @@ const calendarDaysBody  = document.getElementByld("calendar-days");
 
 const previewImage      = document.getElementByld("preview-image");
 const placeholderText   = document.querySelector(".placeholder-text");
+
+// 画像プレビューモーダル関連
+const imageModal        = document.getElementById("image-modal");
+const modalCloseBtn     = document.getElementById("modal-close-btn");
+const modalCancelBtn    = document.getElementById("modal-cancel-btn");
+const modalDownloadBtn  = document.getElementById("modal-download-btn");
+const modalPreviewImg   = document.getElementById("modal-preview-image");
 
 // =========================================================================
 // 3. 日本の祝日判定ロジック
@@ -117,7 +126,7 @@ function getJapaneseHolidays(year, month) {
 
         case 8:
             if (year >= 2016) {
-                holidays[11] "山の日";
+                holidays[11] = "山の日";
             }
             break;
 
@@ -126,7 +135,7 @@ function getJapaneseHolidays(year, month) {
                 holidays[respectDay] = "敬老の日";
                 // 秋分の日（簡易計算式: 1980~2099年対応）
                 const autumnEquinox = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-            holidays[autumsEquinox] = "秋分の日";
+            holidays[autumnEquinox] = "秋分の日";
             
             // 国民の休日判定（毛尾老の日と秋分の日の間に挟まれた1日）
             if (autumnEquinox - respectDay === 2) {
@@ -157,7 +166,7 @@ function getJapaneseHolidays(year, month) {
     const sortedHolidayDates = Object.keys(holidays).map(Number).sort((a, b) => a - b);
 
     sortedHolidayDates.forEach(day => {
-        const holidayDate = new Date(year, month, -1, day);
+        const holidayDate = new Date(year, month - 1, day);
         if (holidayDate.getDay() === 0) {  // 日曜日なら
             let substituteDay = day + 1;
             while (substituteDay <= lastDayOfMonth) {
@@ -186,7 +195,7 @@ function renderWeekdayHeader() {
 
     WEEKDAYS.forEach(day => {
         const th = document.createElement("th");
-        th.chassName = day.className;
+        th.className = day.className;
 
         if (isRubyEnabled) {
             th.innerHTML = `<ruby>${day.name}<rt>${day.ruby}</rt></ruby>`;
@@ -209,7 +218,7 @@ function renderCalendar() {
     const month = parseInt(monthStr, 10);
 
     // タイトル更新（やさしいひらがな表記）
-    calendarTitle.textContent = `4{year}ねん 4{month}がつ`;
+    calendarTitle.textContent = `${year}ねん ${month}がつ`;
 
     // 曜日ヘッダー再描画
     renderWeekdayHeader();
@@ -241,7 +250,7 @@ function renderCalendar() {
 
             // 1週目の前月埋めセル
             if (calendarDaysBody.children.length === 0 && dayOfWeek < firstDayOfWeek) {
-                const prevDate = daysInPrevMonth - (firstDayOfWeek - dayOfWeek-1);
+                const prevDate = daysInPrevMonth - (firstDayOfWeek - dayOfWeek - 1);
                 td.classList.add("other-month");
                 td.innerHTML = `
                 <div class="cell-header">
@@ -263,18 +272,18 @@ function renderCalendar() {
                 // 日付の表記（ルビ判定）
                 let dateHtml = `${thisDay}`;
                 if (rubyDatesChk.checked && SPECIAL_DATE_READINGS[thisDay]) {
-                    dateHtml = `<ruby>${thisDay}<rt>${SPECIAL_DATE_READINGS[thisDay]}
-                    </rt></ruby>`;
+                    dateHtml = `<ruby>${thisDay}<rt>${SPECIAL_DATE_READINGS[thisDay]}</rt></ruby>`;
                 }
 
                 // 祝日名の表記
                 let holidayHtml = "";
                 if (showHolidaysChk.checked && isHoliday) {
-                    holidayHtml = `<span class="holiday-name" title="${holidayName}">${holidayName}</span>`;}
+                    holidayHtml = `<span class="holiday-name" title="${holidayName}">${holidayName}</span>`;
+                }
 
-                    td.innerHTML = `
+                td.innerHTML = `
                     <div class="cell-header">
-                    <span class="date-num">${dateHtml}</span>
+                        <span class="date-num">${dateHtml}</span>
                     ${holidayHtml}
                     </div>
                     <div class="sticker-memo-space" title="シールをはったり、メモをかこう"></div>
@@ -307,37 +316,106 @@ function renderCalendar() {
 }
 
 // ==========================================================================
-// 5. 画像保存（PNGダウンロード）機能
+// 5. 画像保存（プレビュー表示 & PNGダウンロード）機能
 // ==========================================================================
 
+// 生成した画像URLの一時保持用
+let currentGeneratedImageUrl = null;
+
+/**
+ * カレンダーシートを html2canvas でキャプチャして Canvas を生成する共通関数
+ */
+async function generateCalendarCanvas() {
+    // 画像未選択時の案内文字が画像に写り込まないよう、一時的にキャプチャ用クラスを付与
+    calendarSheet.classList.add("is-capturing");
+  
+    try {
+        return await html2canvas(calendarSheet, {
+            scale: 2,               // 印刷にも耐えうる高解像度（2倍スケール）
+            useCORS: true,         // 外部画像のクロスオリジン対応
+            backgroundColor: "#ffffff",
+            logging: false
+        });
+    } finally {
+        // キャプチャが終わったらクラスを解除
+        calendarSheet.classList.remove("is-capturing");
+    }
+}
+
+/**
+ * 生成した画像を画面上にモーダル（ポップアップ）で表示する
+ */
+async function showImagePreview() {
+    const originalBtnText = previewBtn.textContent;
+  
+    try {
+        previewBtn.textContent = "⌛ さくせいちゅう...";
+        previewBtn.disabled = true;
+     
+        const canvas = await generateCalendarCanvas();
+        currentGeneratedImageUrl = canvas.toDataURL("image/png");
+
+        // モーダル内の画像にセットして表示
+        modalPreviewImg.src = currentGeneratedImageUrl;
+        imageModal.classList.remove("hidden");
+      } catch (error) {
+        console.error("画像プレビュー生成エラー:", error);
+        alert("画像の生成に失敗しました。もう一度お試しください。");
+      } finally {
+        previewBtn.textContent = originalBtnText;
+        previewBtn.disabled = false;
+      }
+}
+
+/**
+ * プレビューモーダルを閉じる
+ */
+function closeImageModal() {
+    imageModal.classList.add("hidden");
+}
+
+/**
+ * PNG画像をダウンロードする処理
+ */
 async function downloadAsImage() {
     const originalBtnText = downloadBtn.textContent;
 
     try {
-        downloadBtn.textContent = "⌛ がぞうを さくせいちゅう...";
+        downloadBtn.textContent = "⌛ ほぞんちゅう...";
         downloadBtn.disabled = true;
+        
+        // まだ画像が生成されていないか、更新されている可能性があるため最新のCanvasを取得
+        const canvas = await generateCalendarCanvas();
+        const dataUrl = canvas.toDataURL("image/png");
 
-        // html2canvasで高品質キャプチャ（scale: 2 で印刷にも耐えうる高解像度）
-        const canvas = await html2canvas(calendarSheet, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: "#ffffff",
-            logging: false
-        });
+    triggerDownload(dataUrl);
+  } catch (error) {
+    console.error("画像ダウンロードエラー:", error);
+    alert("画像の保存に失敗しました。もう一度お試しください。");
+  } finally {
+    downloadBtn.textContent = originalBtnText;
+    downloadBtn.disabled = false;
+  }
+}
 
-        // ダウンロード用リンクの作成とクリック実行
-        const [year, month] = yearMonthInput.value.split("-");
-        const link = document.createElement("a");
-        link.download = `calendar_${year}_${month}.png`;
-        link.href = canvas.toDataURL("image/png");
-        link/click();
-    } catch (error) {
-        console.error("画像ダウンロードエラー:",error);
-        alert("画像の保存に失敗しました。もう一度お試しください。");
-    } finally {
-        downloadBtn.textContent = originalBtnText;
-        downloadBtn.disabled = false;
+/**
+ * モーダル内からのダウンロード実行処理
+ */
+function downloadFromModal() {
+    if (currentGeneratedImageUrl) {
+        triggerDownload(currentGeneratedImageUrl);
     }
+}
+
+/**
+ * aタグを使ってブラウザのダウンロードを起動する補助関数
+ */
+function triggerDownload(dataUrl) {
+    const [year, month] = yearMonthInput.value.split("-");
+    const link = document.createElement("a");
+    link.download = `calendar_${year}_${month}.png`;
+    link.href = dataUrl;
+    link.click();
 }
 
 // ==========================================================================
@@ -356,6 +434,15 @@ paperSizeSelect.addEventListener("change", (e) => {
     calendarSheet.classList.add(e.target.value);
 });
 
+// 下部画像のクリア（未選択状態に戻す）関数
+function resetBottomImage() {
+    imageUploadInput.value = "";
+    previewImage.removeAttribute("src");
+    previewImage.classList.add("hidden");
+    placeholderText.classList.remove("hidden");
+    clearImageBtn.classList.add("hidden");
+}
+
 // 下部画像のアップロード&プレビュー反映
 imageUploadInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
@@ -365,22 +452,46 @@ imageUploadInput.addEventListener("change", (e) => {
             previewImage.src = event.target.result;
             previewImage.classList.remove("hidden");
             placeholderText.classList.add("hidden");
+            clearImageBtn.classList.remove("hidden");
         };
         reader.readAsDataURL(file);
     } else {
-        previewImage.src = "";
-        previewImage.classList.add("hidden");
-        placeholderText.classList.remove("hidden");
+        resetBottomImage();
     }
 });
+
+// 「けす」ボタンで画像をクリア
+clearImageBtn.addEventListener("click", resetBottomImage);
 
 // 印刷ボタンのクリック
 printBtn.addEventListener("click", () => {
     window.print();
 });
 
+// 画像プレビューボタンのクリック
+previewBtn.addEventListener("click", showImagePreview);
+
 // 画像保存ボタンのクリック
 downloadBtn.addEventListener("click", downloadAsImage);
+
+// モーダル操作（閉じるボタン、キャンセルボタン、ダウンロードボタン）
+modalCloseBtn.addEventListener("click", closeImageModal);
+modalCancelBtn.addEventListener("click", closeImageModal);
+modalDownloadBtn.addEventListener("click", downloadFromModal);
+
+// モーダルの背景（黒い半透明部分）をクリックしても閉じる
+imageModal.addEventListener("click", (e) => {
+    if (e.target === imageModal) {
+        closeImageModal();
+    }
+});
+
+// キーボードの Esc キーでもモーダルを閉じられるようにする
+window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !imageModal.classList.contains("hidden")) {
+        closeImageModal();
+    }
+});
 
 // 画面読み込み時の初期化処理
 window.addEventListener("DOMContentLoaded", () => {

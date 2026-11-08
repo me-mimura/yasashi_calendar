@@ -171,6 +171,35 @@ font-weight: 500;
     border-color:#f472b6;
 }
 
+/* 画像入力とクリアボタン */
+.image-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.image-input-row input[type="file"] {
+    flex: 1;
+}
+
+.btn-clear {
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    padding: 8px 12px;
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s;
+}
+
+.btn-clear:hover {
+    background-color: #fecaca;
+}
+
 /* チェックボックス項目 */
 .checkbox-item .checkboxes {
     display: flex;
@@ -226,9 +255,19 @@ font-weight: 500;
     color: #14532d;
 }
 
+.btn-preview {
+    background-color: #bae6fd; /* やさしい水色 */
+    color: #075985;
+}
+
 .btn-download {
   background-color: #bbf7d0; /* やさしいグリーン */
   color: #14532d;
+}
+
+.btn-sub {
+    background-color: #e2e8f0; /* グレー */
+    color: #475569;
 }
 
 /* ==========================================================================
@@ -255,16 +294,16 @@ font-weight: 500;
     box-sizing: border-box;
 }
 
-/* 共通の用紙スタイル（画面上は比率を維持した美しいシート） */
-.calendar-sheet {
-    background: #ffffff;
-    color: #333333;
-    border: 2px solid #b0bec5;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    padding: 18px 24px;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
+/* 横向き用紙サイズ（画面表示の目安サイズ：白銀比 1 : 1.414） */
+.calendar-sheet.landscape {
+    width: 1000px;
+    min-height: 707px; /* 1000 / 1.414 ≒ 707px */
+}
+
+/* カレンダーのタイトル */
+.calendar-sheet-header {
+    text-align: center;
+    margin-bottom: 10px;
 }
 
 .sheet-title {
@@ -420,6 +459,13 @@ font-weight: 500;
     font-size: 0.85rem;
     color: #94a3b8;
     font-weight: 500;
+    text-align: center;
+    padding: 0 16px;
+}
+
+/* キャプチャ時（プレビュー・画像保存時）は案内文を非表示にし、きれいな枠だけにする */
+.calendar-sheet.is-capturing .placeholder-text {
+    display: none !important;
 }
 
 #preview-image {
@@ -433,7 +479,117 @@ font-weight: 500;
 }
 
 /* ==========================================================================
-   5. 印刷用スタイル (@media print)
+   5. 画像プレビューモーダル（ポップアップ表示）
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(59, 46, 42, 0.7); /* やさしい濃茶の半透明背景 */
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.modal-content {
+    background-color: #ffffff;
+    border: 4px solid #6b4423;
+    border-radius: 16px;
+    max-width: 960px;
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+    animation: modalFadeIn 0.25s ease-out;
+    overflow: hidden;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    background-color: #fca5b8; /* スケッチブックとおそろいのピンク */
+    border-bottom: 3px solid #6b4423;
+}
+
+.modal-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #4a2c11;
+}
+
+.modal-close-icon {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    line-height: 1;
+    color: #6b4423;
+    cursor: pointer;
+    padding: 0 6px;
+    border-radius: 6px;
+    transition: transform 0.1s, color 0.1s;
+}
+
+.modal-close-icon:hover {
+    color: #000;
+    transform: scale(1.15);
+}
+
+.modal-body {
+    padding: 16px 20px;
+    overflow-y: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fffff0; /* サイトと同じアイボリー背景 */
+}
+
+.modal-img-wrapper {
+    max-width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+#modal-preview-image {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    border: 2px solid #cbd5e1;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    background-color: #ffffff;
+}
+
+.modal-footer {
+    padding: 14px 20px;
+    background-color: #f8fafc;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   6. 印刷用スタイル (@media print)
    ========================================================================== */
 @media print {
     /* 画面のヘッダーや操作パネルは完全に非表示 */
@@ -441,6 +597,11 @@ font-weight: 500;
         display: none !important;
     }
 
+    /* 印刷時は案内テキストを非表示にして白紙のお絵かき枠にする */
+    .placeholder-text {
+        display: none !important;
+    }
+    
     body {
         background-color:#ffffff !important;
         padding: 0 !important;

@@ -91,7 +91,7 @@
                     <div class="checkboxes">
                         <label>
                             <input type="checkbox" id="show-holidays" checked>
-                            しゅくじつの 名前をかく
+                            しゅくじつの 名前を表示する
                         </label>
                     </div>
                 </div>
@@ -99,7 +99,11 @@
                 <!-- 下部の画像アップロード -->
                 <div class="setting-item">
                     <label for="image-upload">追加する イラスト・写真：</label>
-                    <input type="file" id="image-upload" accept="image/*">
+                    <div class="image-input-row">
+                        <input type="file" id="image-upload" accept="image/*">
+                        <button type="button" id="clear-image-btn" class="btn-clear hidden" title="選んだ画像を取り消す">✕ けす</button>
+
+                    </div>
                 </div>
             </div>
 
@@ -107,6 +111,9 @@
             <div class="action-buttons">
                 <button type="button" id="print-btn" class="btn btn-print">
                     🖨️ いんさつする
+                </button>
+                <button type="button" id="preview-btn" class="btn btn-preview">
+                    👁️ がぞうをみる
                 </button>
                 <button type="button" id="download-btn" class="btn-download">
                     💾 がぞうをほぞんする（PNG）
@@ -120,7 +127,7 @@
          ============================================== -->
 
     <main class="sheet-viewport">
-        <article id="calendar-sheet" class="calendar-cheet a4 landscape">
+        <article id="calendar-sheet" class="calendar-sheet a4 landscape">
         
             <!-- 年月ヘッダー（例：2026ねん 5がつ） -->
             <header class="calendar-sheet-header">
@@ -149,17 +156,42 @@
                 </table>
             </div>
 
-            <!-- 下部のイラスト・自由スペース -->
+            <!-- 下部のイラスト・自由スペース(画像なしの時はフリースペースになります) -->
             <section class="bottom-space" id="bottom-space">
                 <div class="image-preview-wrapper" id="image-preview-wrapper">
-                    <p class="placeholder-text">（ここに選んだ画像が入ります）</p>
-                    <img id="preview-image" src="" alt="カレンダーのイラスト" class="hidden">
+                    <p class="placeholder-text">（ここに選んだ画像が入ります/選ばない場合はフリースペースになります）</p>
+                    <img id="preview-image" alt="カレンダーのイラスト" class="hidden">
                 </div>
             </section>
 
         </article>
     </main>
 
+    <!-- ==============================================
+         4. 画像プレビューモーダル（ポップアップ表示）
+         ============================================== -->
+    <div id="image-modal" class="modal-overlay hidden no-print" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h3 id="modal-title" class="modal-title">🖼️ つくったカレンダーのがぞう</h3>
+                <button type="button" id="modal-close-btn" class="modal-close-icon" aria-label="とじる">&times;</button>
+            </header>
+        
+            <div class="modal-body">
+                <div class="modal-img-wrapper">
+                    <img id="modal-preview-image" src="" alt="生成されたカレンダーの画像">
+                </div>
+            </div>
+            <footer class="modal-footer">
+                <button type="button" id="modal-download-btn" class="btn btn-download">
+                  💾 この画像をほぞんする
+                </button>
+                <button type="button" id="modal-cancel-btn" class="btn btn-sub">
+                とじる
+                </button>
+            </footer>
+        </div>
+    </div>
 
     <!-- スクリプト -->
     <script src="script.js"></script>
